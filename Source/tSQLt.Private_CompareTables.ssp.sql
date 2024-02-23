@@ -22,8 +22,8 @@ BEGIN
         WHEN RestoredRowIndex.'+@RestoredRowIndexCounterColName+' <= CASE WHEN [_{Left}_]<[_{Right}_] THEN [_{Left}_] ELSE [_{Right}_] END
          THEN ''='' 
         WHEN RestoredRowIndex.'+@RestoredRowIndexCounterColName+' <= [_{Left}_] 
-         THEN ''<'' 
-        ELSE ''>'' 
+         THEN ''E'' 
+        ELSE ''A'' 
       END AS ' + @MatchIndicatorColumnName + ', ' + @ColumnList + '
     FROM(
       SELECT SUM([_{Left}_]) AS [_{Left}_], 
@@ -52,7 +52,7 @@ BEGIN
          CASE WHEN EXISTS(
                   SELECT 1 
                     FROM ' + @ResultTable + 
-                 ' WHERE ' + @MatchIndicatorColumnName + ' IN (''<'', ''>'')) 
+                 ' WHERE ' + @MatchIndicatorColumnName + ' IN (''E'', ''A'')) 
               THEN 1 ELSE 0 
          END';
     DECLARE @UnequalRowsExist INT;

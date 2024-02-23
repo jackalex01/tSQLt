@@ -5,7 +5,8 @@ CREATE PROCEDURE tSQLt.AssertEqualsTable
     @Expected NVARCHAR(MAX),
     @Actual NVARCHAR(MAX),
     @Message NVARCHAR(MAX) = NULL,
-    @FailMsg NVARCHAR(MAX) = 'Unexpected/missing resultset rows!'
+    @FailMsg NVARCHAR(MAX) = 'Unexpected/missing resultset rows!',
+    @WithOrderByFisrtColumn BIT = 0
 AS
 BEGIN
 
@@ -18,6 +19,7 @@ BEGIN
     DECLARE @ColumnList NVARCHAR(MAX);    
     DECLARE @UnequalRowsExist INT;
     DECLARE @CombinedMessage NVARCHAR(MAX);
+    DECLARE @OrderBy NVARCHAR(MAX);
 
     SELECT @ResultTable = tSQLt.Private::CreateUniqueObjectName();
     SELECT @ResultColumn = 'RC_' + @ResultTable;
@@ -29,6 +31,23 @@ BEGIN
       @BaseTable = @Expected;
         
     SELECT @ColumnList = tSQLt.Private_GetCommaSeparatedColumnList(@ResultTableWithSchema, @ResultColumn);
+
+    If @WithOrderByFisrtColumn = 1 
+    BEGIN
+      IF CHARINDEX(',', @ColumnList) > 0
+      BEGIN
+        SET @OrderBy = SUBSTRING(@ColumnList, 1, CHARINDEX(',', @ColumnList) - 1) + ', ' + @ResultColumn + ' DESC';
+      END
+      ELSE
+      BEGIN
+        SET @OrderBy = @ColumnList + ', ' + @ResultColumn + ' DESC';
+      END
+    END
+    ELSE
+    BEGIN
+      SET @OrderBy = @ResultColumn;
+    END
+    ;
 
     EXEC tSQLt.Private_ValidateThatAllDataTypesInTableAreSupported @ResultTableWithSchema, @ColumnList;    
     
@@ -45,7 +64,8 @@ BEGIN
       @ResultTable = @ResultTableWithSchema,
       @ResultColumn = @ResultColumn,
       @ColumnList = @ColumnList,
-      @FailMsg = @CombinedMessage;   
-END;
+      @FailMsg = @CombinedMessage,
+      @OrderBy = @OrderBy;   
+END;  
 ---Build-
 GO

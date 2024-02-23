@@ -7,7 +7,8 @@ CREATE PROCEDURE tSQLt.Private_CompareTablesFailIfUnequalRowsExists
  @ResultTable NVARCHAR(MAX),
  @ResultColumn NVARCHAR(MAX),
  @ColumnList NVARCHAR(MAX),
- @FailMsg NVARCHAR(MAX)
+ @FailMsg NVARCHAR(MAX),
+ @OrderBy NVARCHAR(MAX) = NULL
 AS
 BEGIN
   IF @UnequalRowsExist > 0
@@ -15,7 +16,8 @@ BEGIN
    DECLARE @TableToTextResult NVARCHAR(MAX);
    DECLARE @OutputColumnList NVARCHAR(MAX);
    SELECT @OutputColumnList = '[_m_],' + @ColumnList;
-   EXEC tSQLt.TableToText @TableName = @ResultTable, @OrderBy = @ResultColumn, @PrintOnlyColumnNameAliasList = @OutputColumnList, @txt = @TableToTextResult OUTPUT;
+   SET @OrderBy = ISNULL(@OrderBy, @ResultColumn + ' DESC');
+   EXEC tSQLt.TableToText @TableName = @ResultTable, @OrderBy = @OrderBy, @PrintOnlyColumnNameAliasList = @OutputColumnList, @txt = @TableToTextResult OUTPUT;
    
    DECLARE @Message NVARCHAR(MAX);
    SELECT @Message = @FailMsg + CHAR(13) + CHAR(10);
